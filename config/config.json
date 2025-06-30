@@ -1,0 +1,18 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx-build/config.2.0.schema.json",
+  "version": "2.0",
+  "bundles": {
+    "scroll-web-part": {
+      "components": [
+        {
+          "entrypoint": "./lib/webparts/scroll/ScrollWebPart.js",
+          "manifest": "./src/webparts/scroll/ScrollWebPart.manifest.json"
+        }
+      ]
+    }
+  },
+  "externals": {},
+  "localizedResources": {
+    "ScrollWebPartStrings": "lib/webparts/scroll/loc/{locale}.js"
+  }
+}
