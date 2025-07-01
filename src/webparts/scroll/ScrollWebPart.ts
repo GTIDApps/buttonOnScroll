@@ -98,6 +98,7 @@ export default class ScrollWebPart extends BaseClientSideWebPart<IScrollWebPartP
       console.log('Scrolling to top of:', scrollContainer);
       scrollContainer.scrollTo({
         top: 0,
+        left:0,
         behavior: 'smooth'
       });
     };
