@@ -13,7 +13,6 @@ export interface IScrollWebPartProps {
 }
 
 export default class ScrollWebPart extends BaseClientSideWebPart<IScrollWebPartProps> {
-
   public render(): void {
     console.log('Rendering ScrollWebPart');
     this.domElement.innerHTML = `
@@ -22,15 +21,15 @@ export default class ScrollWebPart extends BaseClientSideWebPart<IScrollWebPartP
         data-twe-ripple-init
         data-twe-ripple-color="light"
         class="
-            fixed bottom-5 right-5 w-16 h-16 rounded-full
-            bg-white/20 hover:bg-white/100!
-            focus:outline-none shadow-md
-            transition duration-150 ease-in-out
-            flex items-center justify-center z-10
-            hidden
-          "
-          id="btn-back-to-top"
-        title="Back to Top"
+          fixed bottom-10 right-10 w-16 h-16 rounded-full
+          bg-white/20 hover:bg-white/100
+          backdrop-blur-sm focus:outline-none shadow-md
+          transition duration-150 ease-in-out
+          flex items-center justify-center z-50
+        "
+        style="position: fixed !important; right: 2.5rem !important; left: auto !important; bottom: 2.5rem !important;"
+        id="btn-back-to-top"
+        title="${this.properties.description || 'Back to Top'}"
         aria-label="Scroll to top">
         <svg class="w-10 h-10" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
           viewBox="0 0 311.8 311.8" preserveAspectRatio="xMidYMid meet" style="enable-background:new 0 0 311.8 311.8;">
@@ -58,32 +57,68 @@ export default class ScrollWebPart extends BaseClientSideWebPart<IScrollWebPartP
   }
 
   private initializeButton(): void {
-    const mybutton = this.domElement.querySelector('#btn-back-to-top');
-    if (!mybutton) {
-      console.error("Button with ID 'btn-back-to-top' not found in render");
+    const button = this.domElement.querySelector('#btn-back-to-top') as HTMLButtonElement;
+    if (!button) {
+      console.error("Button with ID 'btn-back-to-top' not found");
       return;
     }
-    console.log('Button found:', mybutton);
+    console.log('Button found:', button);
 
-    const scrollFunction = () => {
-      if (
-        document.body.scrollTop > 20 ||
-        document.documentElement.scrollTop > 20
-      ) {
-        mybutton.classList.remove("hidden");
-      } else {
-        mybutton.classList.add("hidden");
-      }
+    // Try to find the SharePoint scrollable container
+    const scrollContainer = document.querySelector('.spAppAndPropertyPanelContainer') || 
+                          document.body || // Fallback to body
+                          document.documentElement; // Fallback to html
+
+    // Debug: Log all potential containers and their scrollTop
+    console.log('Checking scroll containers:');
+    console.log('.spAppAndPropertyPanelContainer:', document.querySelector('.spAppAndPropertyPanelContainer'), document.querySelector('.spAppAndPropertyPanelContainer')?.scrollTop);
+    console.log('.SPPageChrome:', document.querySelector('.SPPageChrome'), document.querySelector('.SPPageChrome')?.scrollTop);
+    console.log('.CanvasZone:', document.querySelector('.CanvasZone'), document.querySelector('.CanvasZone')?.scrollTop);
+    console.log('.CanvasSection:', document.querySelector('.CanvasSection'), document.querySelector('.CanvasSection')?.scrollTop);
+    console.log('document.body:', document.body, document.body.scrollTop);
+    console.log('document.documentElement:', document.documentElement, document.documentElement.scrollTop);
+
+    if (!scrollContainer) {
+      console.error("Scrollable container not found");
+      return;
+    } else {
+      console.log('Scrollable container found:', scrollContainer);
+      console.log('Initial scrollTop:', scrollContainer.scrollTop);
+    }
+
+    const scrollFunction = (): void => {
+      const scrollTop = scrollContainer.scrollTop;
+      console.log('Scroll position:', scrollTop);
+      button.classList.remove('hidden'); // Force button visible for testing
+      console.log('Button shown (forced for testing)');
     };
 
-    const backToTop = () => {
-      window.scrollTo({ top: 0, behavior: "smooth" });
-      console.log('Back to top clicked');
+    const backToTop = (): void => {
+      console.log('Button clicked, scrolling to top');
+      console.log('Scrolling to top of:', scrollContainer);
+      scrollContainer.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
     };
 
-    mybutton.addEventListener('click', backToTop);
-    mybutton.addEventListener("scroll", scrollFunction);
+    button.addEventListener('click', backToTop);
+    scrollContainer.addEventListener('scroll', scrollFunction);
 
+    // Attach scroll listener to window and body as fallbacks
+    window.addEventListener('scroll', () => {
+      console.log('Scroll event fired');
+      console.log('Window scrollTop:', document.documentElement.scrollTop);
+      console.log('Body scrollTop:', document.body.scrollTop);
+      console.log('Container scrollTop:', scrollContainer.scrollTop);
+      console.log('spAppAndPropertyPanelContainer scrollTop:', document.querySelector('.spAppAndPropertyPanelContainer')?.scrollTop);
+      console.log('SPCanvas scrollTop:', document.querySelector('.SPCanvas')?.scrollTop);
+      console.log('SPPageChrome scrollTop:', document.querySelector('.SPPageChrome')?.scrollTop);
+      console.log('CanvasZone scrollTop:', document.querySelector('.CanvasZone')?.scrollTop);
+    });
+
+    // Initial check
+    scrollFunction();
   }
 
   protected onInit(): Promise<void> {
